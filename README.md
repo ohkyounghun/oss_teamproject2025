@@ -2,7 +2,7 @@
 
 AI-powered requirement validation web service
 
-A web application that compares a requirement document with a submitted project document and automatically determines whether each requirement is Fulfilled, Partially Fulfilled, or Not Fulfilled, along with clear evidence sentences extracted from the submitted document.
+CheckMate is a web application that analyzes a requirement document and a submitted project document, then automatically determines whether each requirement is Fulfilled, Partially Fulfilled, or Not Fulfilled—along with clear evidence extracted from the submission.
 
 ---
 
@@ -18,7 +18,7 @@ Using AI-based text comparison, the system detects which requirements are met an
 - Downloadable evaluation results as a .txt file
 - A clean and simple web UI for easy interaction
 
-This removes the need for manual cross-checking and enables consistent, objective evaluation.
+This completely removes manual cross-checking and enables consistent, objective evaluation.
 
 ---
 
@@ -44,7 +44,7 @@ It is especially useful for:
 
 ---
 
-How do I get started?
+### Getting Started
 1. Clone the repository
 ```
 git clone https://github.com/kwon-dohun/oss_teamproject2025
@@ -76,27 +76,25 @@ Everything works through a clean and minimal interface.
 
 ---
 
-### Where can I get more help?
+### Contributing & Feedback
 
-- Project repository: GitHub Issues & Discussions
-- Source code (frontend + backend) for implementation details
-- Future documentation will be added in /docs
-
-If you have feature requests, bug reports, or improvement ideas, feel free to open an Issue.
+- Use GitHub Issues & Discussions for bug reports, feature requests, and general questions.
+- Refer to the source code (frontend + backend) for implementation details.
+- Additional documentation will be added to the /docs directory.
+Feel free to open an Issue anytime if you have ideas, improvements, or problems to report.
 
 ---
 
-### How you handle contributions?
+### Contribution Workflow
 
 Contributions are welcome.
-All collaborators should follow the project workflow:
-- Discuss ideas or problems via Issues
+Please follow the project workflow for smooth collaboration:
+- Discuss ideas or issues through Issues
 - Submit changes via Pull Requests
-- Follow the Code of Conduct and Contribution Guidelines
-- Use the provided templates for Issues and PRs
-- Ensure clarity and testing before requesting a review
-
-This structure ensures transparent and scalable collaboration.
+- Follow the Code of Conduct and contribution guidelines
+- Use the provided Issue / PR templates
+- Ensure clarity, stability, and testing before requesting review
+This ensures scalable, transparent development for all collaborators.
 
 ---
 
@@ -108,4 +106,5 @@ This structure ensures transparent and scalable collaboration.
 4. Deliver clear explanations and evidence for all decisions.
 5. Build a maintainable, extendable open-source project.
 6. Serve as a reference for learning proper OSS workflows.
+
 
