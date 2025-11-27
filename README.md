@@ -81,6 +81,7 @@ Everything works through a clean and minimal interface.
 - Use GitHub Issues & Discussions for bug reports, feature requests, and general questions.
 - Refer to the source code (frontend + backend) for implementation details.
 - Additional documentation will be added to the /docs directory.
+
 Feel free to open an Issue anytime if you have ideas, improvements, or problems to report.
 
 ---
@@ -94,6 +95,7 @@ Please follow the project workflow for smooth collaboration:
 - Follow the Code of Conduct and contribution guidelines
 - Use the provided Issue / PR templates
 - Ensure clarity, stability, and testing before requesting review
+  
 This ensures scalable, transparent development for all collaborators.
 
 ---
@@ -106,5 +108,6 @@ This ensures scalable, transparent development for all collaborators.
 4. Deliver clear explanations and evidence for all decisions.
 5. Build a maintainable, extendable open-source project.
 6. Serve as a reference for learning proper OSS workflows.
+
 
 
