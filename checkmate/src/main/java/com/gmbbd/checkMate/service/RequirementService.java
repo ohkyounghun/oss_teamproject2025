@@ -4,97 +4,163 @@ import com.gmbbd.checkMate.model.Requirement;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.regex.Matcher;
+import java.util.Set;
 import java.util.regex.Pattern;
 
-// PDF/DOCX 텍스트에서 "요구사항 항목"을 찾아서 Requirement 리스트로 변환
 @Service
 public class RequirementService {
 
 
-    // 인식할 요구사항 패턴
-    private static final List<Pattern> REQUIREMENT_PATTERNS = List.of(
-            // 1. 내용 / 1) 내용 / 1 - 내용 / 1 내용 / 1.1. 내용 / 1.2.3 내용 ...
-            Pattern.compile("^\\s*(\\d+(?:\\.\\d+)*)(?:[\\.)-])?\\s+(.+)$"),
-
-            // (1) 내용 / [1] 내용 / (A) 내용 / a) 내용 ...
-            Pattern.compile("^\\s*[\\[\\(]?(\\d+|[A-Za-z])[\\]\\)]?\\)?\\s+(.+)$"),
-
-            // • 내용 / ● 내용 / - 내용 / * 내용 (앞에 기호 하나 + 공백)
-            Pattern.compile("^\\s*[•●\\-\\*]\\s+(.+)$")
+    private static final Pattern REQUIREMENT_HEADER_PATTERN = Pattern.compile(
+            "^\\s*#{1,6}\\s*.*(요구사항|요구 사양|요구 조건|Requirements?)\\s*$"
     );
 
-    /**
-     * 한 줄에서 요구사항 본문을 추출
-     *  - 어떤 패턴에도 맞지 않으면 null 반환
-     */
-    private String extractRequirementBody(String line) {
-        String trimmed = line.trim();
-        if (trimmed.isBlank()) {
-            return null;
+
+    private static final Pattern ANY_HEADER_PATTERN = Pattern.compile(
+            "^\\s*#{1,6}\\s+.*$"
+    );
+
+
+    private static final Pattern LIST_ITEM_PATTERN = Pattern.compile(
+            "^\\s*(?:[-*+]\\s+|\\d+\\.\\s+|[\\[\\(]?(\\d+|[A-Za-z])[\\]\\)]\\s+)?.+"
+    );
+
+
+    private static final Pattern REQUIREMENT_SENTENCE_PATTERN = Pattern.compile(
+            ".*(해야 한다|해야 함|해야 합니다|필수|반드시|요구된다|요구됨).*"
+    );
+
+
+    private static final Pattern SEPARATOR_LINE_PATTERN = Pattern.compile(
+            "^\\s*[-=*_]{3,}\\s*$"
+    );
+
+
+    public List<Requirement> extractRequirements(String markdown) {
+        List<Requirement> result = new ArrayList<>();
+        if (markdown == null || markdown.isBlank()) {
+            return result;
         }
 
-        for (Pattern p : REQUIREMENT_PATTERNS) {
-            Matcher m = p.matcher(trimmed);
-            if (m.matches()) {
-                // "본문"은 항상 마지막 그룹으로 두었으므로 groupCount() 사용
-                String body = m.group(m.groupCount());
-                if (body != null) {
-                    body = body.trim();
-                }
-                // 너무 짧은 건(예: "-"만 있는 줄)은 필터링
-                if (body != null && body.length() >= 3) {
-                    return body;
-                }
-            }
-        }
+        String[] lines = markdown.split("\\r?\\n");
 
-        return null;
-    }
+        boolean inRequirementSection = false;
+        Set<String> dedupSet = new LinkedHashSet<>();
 
-    /**
-     * 요구사항 텍스트를 줄 단위로 나누고,
-     * 번호/불릿 패턴으로 시작하는 줄들을 Requirement 리스트로 변환
-     * 11/17 번호 없이 줄글로 입력된 경우 fallback 로직 추가
-     */
-    public List<Requirement> extractRequirements(String requirementText) {
-        List<Requirement> requirements = new ArrayList<>();
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
 
-        if (requirementText == null || requirementText.isBlank()) {
-            return requirements;
-        }
-
-        String[] lines = requirementText.split("\\r?\\n");
-        long id = 1L;
-
-        // 1차: 번호/불릿 패턴
-        for (String line : lines) {
-            String body = extractRequirementBody(line);
-            if (body == null) {
+            if (line == null || line.trim().isEmpty() || SEPARATOR_LINE_PATTERN.matcher(line).matches()) {
                 continue;
             }
-            requirements.add(new Requirement(id++, body));
-        }
 
-        // 번호/불릿에서 아무것도 못 찾았으면 줄글 fallback
-        if (requirements.isEmpty()) {
-            // 2차: 문장 단위로 잘라서 요구사항으로 사용
-            // 마침표/물음표/느낌표 + 줄바꿈 기준으로 문장 분리
-            String[] sentences = requirementText.split("(?<=[\\.?!。！？])\\s+|\\r?\\n");
+            if (REQUIREMENT_HEADER_PATTERN.matcher(line).matches()) {
+                inRequirementSection = true;
+                continue;
+            }
 
-            id = 1L;
-            for (String s : sentences) {
-                String trimmed = s.trim();
-                // 너무 짧은 것 제외
-                if (trimmed.length() < 10) {
-                    continue;
+            if (inRequirementSection && ANY_HEADER_PATTERN.matcher(line).matches()) {
+                if (!REQUIREMENT_HEADER_PATTERN.matcher(line).matches()) {
+                    inRequirementSection = false;
+                } else {
+                    inRequirementSection = true;
                 }
-                requirements.add(new Requirement(id++, trimmed));
+                continue;
+            }
+
+            if (inRequirementSection) {
+                handleLineAsRequirementCandidate(line, dedupSet);
+            } else {
+                if (looksLikeGlobalRequirementLine(line)) {
+                    handleLineAsRequirementCandidate(line, dedupSet);
+                }
             }
         }
 
-        return requirements;
+        long id = 1L;
+        for (String text : dedupSet) {
+            result.add(new Requirement(id++, text));
+        }
+
+        return result;
     }
 
+    private void handleLineAsRequirementCandidate(String line, Set<String> dedupSet) {
+        if (line == null) {
+            return;
+        }
+        String trimmed = line.trim();
+        if (trimmed.length() < 10) {
+            return;
+        }
+
+        if (looksLikeTableLine(trimmed)) {
+            return;
+        }
+
+        String cleaned = stripListPrefix(trimmed);
+
+        if (cleaned.length() < 5) {
+            return;
+        }
+
+        dedupSet.add(cleaned);
+    }
+
+    private boolean looksLikeGlobalRequirementLine(String line) {
+        if (line == null) {
+            return false;
+        }
+        String trimmed = line.trim();
+        if (trimmed.length() < 10) {
+            return false;
+        }
+
+        if (REQUIREMENT_SENTENCE_PATTERN.matcher(trimmed).matches()) {
+            return true;
+        }
+
+        if (LIST_ITEM_PATTERN.matcher(trimmed).matches()
+                && REQUIREMENT_SENTENCE_PATTERN.matcher(trimmed).matches()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean looksLikeTableLine(String line) {
+        int pipeCount = 0;
+        for (int i = 0; i < line.length(); i++) {
+            if (line.charAt(i) == '|') {
+                pipeCount++;
+                if (pipeCount >= 2) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private String stripListPrefix(String line) {
+        if (line == null) {
+            return "";
+        }
+        String trimmed = line.trim();
+
+        if (trimmed.matches("^[-*+]\\s+.*")) {
+            return trimmed.replaceFirst("^[-*+]\\s+", "").trim();
+        }
+
+        if (trimmed.matches("^\\d+\\.\\s+.*")) {
+            return trimmed.replaceFirst("^\\d+\\.\\s+", "").trim();
+        }
+
+        if (trimmed.matches("^[\\[\\(]?(\\d+|[A-Za-z])[\\]\\)]\\s+.*")) {
+            return trimmed.replaceFirst("^[\\[\\(]?(\\d+|[A-Za-z])[\\]\\)]\\s+", "").trim();
+        }
+
+        return trimmed;
+    }
 }

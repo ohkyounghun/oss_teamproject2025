@@ -5,30 +5,30 @@ import org.springframework.stereotype.Component;
 @Component
 public class TextCleaner {
 
-    public String clean(String raw) {
+    public String cleanMarkdown(String raw) {
         if (raw == null) return "";
 
         String text = raw;
 
-        text = removeBrokenCharacters(text);
         text = normalizeWhitespace(text);
         text = unifyNewlines(text);
+        text = removeControlChars(text); // Markdown 문법 보존
 
         return text.trim();
     }
 
-    private String removeBrokenCharacters(String s) {
-        // 글자(문자), 숫자, 구두점, 공백, 개행만 허용
-        return s.replaceAll("[^\\p{L}\\p{N}\\p{P}\\p{Z}\\n]", "");
+    private String removeControlChars(String s) {
+        // 일반 텍스트에는 거의 나타나지 않는 제어 문자 제거
+        return s.replaceAll("[\\p{Cntrl}&&[^\n\t]]", "");
     }
 
     private String normalizeWhitespace(String s) {
-        // 연속 공백/탭 → 한 칸
-        return s.replaceAll("[ \\t]{2,}", " ");
+        // 탭 → 공백
+        return s.replaceAll("\\t", " ");
     }
 
     private String unifyNewlines(String s) {
         // CRLF/CR → LF
-        return s.replaceAll("[\\r\\n]+", "\n");
+        return s.replaceAll("\\r\\n?", "\n");
     }
 }
