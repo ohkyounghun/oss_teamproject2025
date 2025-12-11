@@ -109,5 +109,15 @@ This ensures scalable, transparent development for all collaborators.
 5. Build a maintainable, extendable open-source project.
 6. Serve as a reference for learning proper OSS workflows.
 
+## Third-Party Licenses
+
+This Docker image includes **Pandoc**, which is licensed under the **GNU GPL**.
+Pandoc is bundled as an external CLI tool and is not linked with the CheckMate codebase.
+The CheckMate project itself remains under the **MIT License**.
+
+Pandoc source code: https://github.com/jgm/pandoc  
+Pandoc license (GPL): https://github.com/jgm/pandoc/blob/master/COPYING
+
+
 
 
