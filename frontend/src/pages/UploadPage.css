@@ -300,3 +300,28 @@ body {
 .nav-left {
     cursor: pointer;
 }
+
+
+.steps-text-row {
+    width: 100%;
+    max-width: 900px;
+    margin: 40px auto 10px;
+
+    display: flex;
+    justify-content: center;
+    gap: 70px;
+    text-align: center;
+}
+
+.step-text {
+    font-size: 16px;
+    color: #444;
+    font-weight: 500;
+}
+
+.step-label {
+    font-size: 17px;
+    font-weight: 700;
+    color: #3B63F6;
+    margin-right: 6px;
+}
