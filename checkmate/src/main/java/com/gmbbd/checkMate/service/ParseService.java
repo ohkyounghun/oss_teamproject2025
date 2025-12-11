@@ -11,6 +11,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +22,6 @@ public class ParseService {
     private final TextCleaner cleaner;
 
     public String extractText(MultipartFile multipartFile) {
-
         try {
             String name = multipartFile.getOriginalFilename().toLowerCase();
 
